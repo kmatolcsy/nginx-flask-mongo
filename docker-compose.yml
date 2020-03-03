@@ -1,0 +1,64 @@
+version: "3.7"
+services:
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    environment:
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      - front
+
+  flask:
+    build: ./flask
+    container_name: flask
+    restart: always
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 8080
+      MONGODB_HOSTNAME: mongodb
+      MONGODB_DATABASE: flaskdb
+      MONGODB_USERNAME: flask
+      MONGODB_PASSWORD: b3272311c05de42
+    volumes:
+      - flaskdata:/var/www
+    depends_on:
+      - mongodb
+    networks:
+      - front
+      - back
+
+  mongodb:
+    build: ./mongo
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - back
+
+networks:
+  front:
+    driver: bridge
+  back:
+    driver: bridge
+
+volumes:
+  mongodata:
+    driver: local
+  flaskdata:
+    driver: local
+  nginxdata:
+    driver: local
